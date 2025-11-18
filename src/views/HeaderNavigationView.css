@@ -1,0 +1,26 @@
+.app-header {
+  background-color: #282c34;
+  min-height: 10vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.app-title {
+  font-weight: bold;
+  padding: 2vh;
+}
+
+.nav-links {
+  display: flex;
+  width: 100vw;
+  flex-direction: row;
+  justify-content: space-around;
+  align-items: center;
+  padding: 1vh;
+  background-color: #20232a;
+  font-size: calc(10px + 1vmin);
+}
