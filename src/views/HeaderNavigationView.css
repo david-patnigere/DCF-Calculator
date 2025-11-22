@@ -23,4 +23,8 @@
   padding: 1vh;
   background-color: #20232a;
   font-size: calc(10px + 1vmin);
+  :hover {
+    color: #557edd;
+    cursor: pointer;
+  }
 }

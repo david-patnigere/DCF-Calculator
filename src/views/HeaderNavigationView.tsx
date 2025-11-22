@@ -1,18 +1,15 @@
 import "./HeaderNavigationView.css";
+import { Link } from "react-router-dom";
 
 const HeaderNavigationView = () => {
   return (
-    <header className="app-header">
+    <div className="app-header">
       <span className="app-title">DCF Calculator</span>
-      <div className="nav-links">
-        <nav>
-          <a>Overview</a>
-        </nav>
-        <nav>
-          <a>FCF Calculator</a>
-        </nav>
-      </div>
-    </header>
+      <nav className="nav-links">
+        <Link to="/">Overview</Link>
+        <Link to="/fcf-calculator">FCF Calculator</Link>
+      </nav>
+    </div>
   );
 };
 
