@@ -3,19 +3,35 @@ import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
 import "./FcfCalculatorView.css";
 import { Chip, styled } from "@mui/material";
+import Dropdown from "./Dropdown";
 
 const StyledChip = styled(Chip)({
   padding: "1rem",
   margin: "10px",
 });
 
+type CompanyDataType = {
+  symbol: string;
+  name: string;
+  exchange: string;
+  type: string;
+};
+
 const FcfCalculatorView = () => {
   const [companyName, setCompanyName] = useState("");
   const [isValidCompany, setIsValidCompany] = useState<boolean>(false);
-  const [companyTicker, setCompanyTicker] = useState("");
+  const [companyData, setCompanyData] = useState<CompanyDataType | null>(null);
+  const [reportYear, setReportYear] = useState(2025);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const updateCompanyTicker = (event: React.ChangeEvent<HTMLInputElement>) => {
     setCompanyName(event.target.value);
+  };
+
+  const yearOptions = [2025, 2024, 2023, 2022, 2021];
+
+  const changeYear = (newYear: number) => {
+    setReportYear(newYear);
   };
 
   const handleVerify = async (
@@ -34,20 +50,43 @@ const FcfCalculatorView = () => {
       let body = await response.json();
       if (body?.data.symbol) {
         setIsValidCompany(true);
-        setCompanyTicker(body.data.symbol);
+        setCompanyData(body.data);
+        setErrorMessage(null);
       } else {
         setIsValidCompany(false);
-        setCompanyTicker("");
+        setCompanyData(null);
       }
       console.log(body);
     } catch (err) {
       // window.alert("Error verifying company ticker.");
       setIsValidCompany(false);
-      setCompanyTicker("");
+      setCompanyData(null);
+      setErrorMessage(err);
     }
   };
 
-  const handleFetchAR = () => {};
+  const handleFetchAR = async () => {
+    try {
+      const response = await fetch(
+        "http://localhost:8000/api/analyze-annual-report",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            companyName: companyData.name,
+            reportYear,
+            ticker: companyData.symbol,
+          }),
+        }
+      );
+      const data = await response.json();
+      console.log(data);
+    } catch (error) {
+      setErrorMessage(error);
+    }
+  };
 
   return (
     <div className="fcf-calculator-view">
@@ -67,18 +106,29 @@ const FcfCalculatorView = () => {
         </Button>
       </div>
       <div className="annual-report-section" hidden={!isValidCompany}>
-        <StyledChip label={companyTicker} color="primary" variant="outlined" />
+        <StyledChip
+          label={companyData?.symbol}
+          color="primary"
+          variant="outlined"
+        />
+        <Dropdown
+          label="Report Year"
+          value={reportYear}
+          options={yearOptions}
+          onChange={changeYear}
+        />
         <Button
           variant="contained"
           onClick={handleFetchAR}
           disabled={!isValidCompany}
         >
-          Fetch Latest Annual Report
+          Fetch Annual Report
         </Button>
         <hr />
       </div>
       <div className="fcf-results-section">
-        Results for FCF Calculations will go here.
+        {reportYear - 1}-{reportYear % 100} Results for FCF Calculations will go
+        here.
       </div>
     </div>
   );

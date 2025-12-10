@@ -1,6 +1,6 @@
-const express = require("express");
-const cors = require("cors");
-const tickerRouter = require("./routes/ticker");
+import express from "express";
+import cors from "cors";
+import tickerRouter from "./routes/ticker.js";
 
 const app = express();
 

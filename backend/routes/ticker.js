@@ -1,7 +1,9 @@
-const express = require("express");
-const { GoogleGenerativeAI } = require("@google/generative-ai");
-const YahooFinanceModule = require("yahoo-finance2").default;
-const dotenv = require("dotenv");
+import express from "express";
+import { GoogleGenerativeAI } from "@google/generative-ai";
+import YahooFinanceModule from "yahoo-finance2";
+import dotenv from "dotenv";
+import analyzeCompanyAnnualReport from "./report-download.js";
+
 const yahooFinance = new YahooFinanceModule();
 dotenv.config();
 
@@ -22,10 +24,11 @@ async function getTickerSymbol(companyName) {
           quote.symbol.endsWith(".BO") || quote.exchange.endsWith(".NS")
       );
       const bestMatch = indianStockResult || results.quotes[0];
+      console.log("BEst Match is: ", bestMatch);
 
       return JSON.stringify({
         symbol: bestMatch.symbol,
-        name: bestMatch.shortName || bestMatch.longName,
+        name: bestMatch.longname,
         exchange: bestMatch.exchange,
         type: bestMatch.quoteType,
       });
@@ -60,4 +63,24 @@ tickerRouter.post("/get-ticker-info", async (req, res) => {
   }
 });
 
-module.exports = tickerRouter;
+tickerRouter.post("/analyze-annual-report", async (req, res) => {
+  try {
+    const companyName = req.body.companyName;
+    const reportYear = req.body.reportYear;
+    const ticker = req.body.ticker;
+
+    if (!companyName || companyName.trim().length < 2) {
+      res.status(400).json({ error: "Invalid Company Name!" });
+    }
+    if (!reportYear) {
+      res.status(400).json({ error: "Invalid Year!" });
+    }
+
+    console.log("Fetching and Analyzing Annual Report....");
+    analyzeCompanyAnnualReport(companyName, reportYear, ticker);
+  } catch (error) {
+    console.log("Error in Analyzing Annual Report!!! Details: ", error.message);
+  }
+});
+
+export default tickerRouter;
