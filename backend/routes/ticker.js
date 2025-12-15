@@ -2,7 +2,7 @@ import express from "express";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import YahooFinanceModule from "yahoo-finance2";
 import dotenv from "dotenv";
-import analyzeCompanyAnnualReport from "./report-download.js";
+// import analyzeCompanyAnnualReport from "./report-download.js";
 
 const yahooFinance = new YahooFinanceModule();
 dotenv.config();
@@ -77,7 +77,7 @@ tickerRouter.post("/analyze-annual-report", async (req, res) => {
     }
 
     console.log("Fetching and Analyzing Annual Report....");
-    analyzeCompanyAnnualReport(companyName, reportYear, ticker);
+    // analyzeCompanyAnnualReport(companyName, reportYear, ticker);
   } catch (error) {
     console.log("Error in Analyzing Annual Report!!! Details: ", error.message);
   }

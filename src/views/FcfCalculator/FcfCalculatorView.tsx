@@ -11,10 +11,11 @@ const StyledChip = styled(Chip)({
 });
 
 type CompanyDataType = {
-  symbol: string;
-  name: string;
-  exchange: string;
-  type: string;
+  symbol?: string;
+  name?: string;
+  exchange?: string;
+  type?: string;
+  cik?: string;
 };
 
 const FcfCalculatorView = () => {
@@ -34,41 +35,58 @@ const FcfCalculatorView = () => {
     setReportYear(newYear);
   };
 
-  const handleVerify = async (
-    event: React.MouseEvent<HTMLButtonElement>
-  ): Promise<void> => {
-    // window.alert("verifying: " + companyName);
-    try {
-      let response = await fetch(`http://localhost:8000/api/get-ticker-info`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ companyName }),
-      });
+  // const handleVerify = async (
+  //   event: React.MouseEvent<HTMLButtonElement>
+  // ): Promise<void> => {
+  //   // window.alert("verifying: " + companyName);
+  //   try {
+  //     let response = await fetch(`http://localhost:8000/api/get-ticker-info`, {
+  //       method: "POST",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //       },
+  //       body: JSON.stringify({ companyName }),
+  //     });
 
-      let body = await response.json();
-      if (body?.data.symbol) {
-        setIsValidCompany(true);
-        setCompanyData(body.data);
-        setErrorMessage(null);
-      } else {
-        setIsValidCompany(false);
-        setCompanyData(null);
-      }
+  //     let body = await response.json();
+  //     if (body?.data.symbol) {
+  //       setIsValidCompany(true);
+  //       setCompanyData(body.data);
+  //       setErrorMessage(null);
+  //     } else {
+  //       setIsValidCompany(false);
+  //       setCompanyData(null);
+  //       setErrorMessage(body?.data?.error || "Company not found");
+  //     }
+  //     console.log(body);
+  //   } catch (err) {
+  //     // window.alert("Error verifying company ticker.");
+  //     setIsValidCompany(false);
+  //     setCompanyData(null);
+  //     setErrorMessage(err);
+  //   }
+  // };
+
+  const handleVerify = async () => {
+    try {
+      const response = await fetch(
+        "http://localhost:8000/api/usa/cik?company=" +
+          encodeURIComponent(companyName)
+      );
+      const body = await response.json();
       console.log(body);
-    } catch (err) {
-      // window.alert("Error verifying company ticker.");
-      setIsValidCompany(false);
-      setCompanyData(null);
-      setErrorMessage(err);
+      setCompanyData(body.data);
+      setIsValidCompany(true);
+      setErrorMessage(null);
+    } catch (error) {
+      setErrorMessage(error);
     }
   };
 
   const handleFetchAR = async () => {
     try {
       const response = await fetch(
-        "http://localhost:8000/api/analyze-annual-report",
+        "http://localhost:8000/api/usa/annual-report",
         {
           method: "POST",
           headers: {
@@ -77,7 +95,7 @@ const FcfCalculatorView = () => {
           body: JSON.stringify({
             companyName: companyData.name,
             reportYear,
-            ticker: companyData.symbol,
+            cik: companyData.cik,
           }),
         }
       );
@@ -107,7 +125,7 @@ const FcfCalculatorView = () => {
       </div>
       <div className="annual-report-section" hidden={!isValidCompany}>
         <StyledChip
-          label={companyData?.symbol}
+          label={companyData?.name}
           color="primary"
           variant="outlined"
         />
