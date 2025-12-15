@@ -24,6 +24,7 @@ const FcfCalculatorView = () => {
   const [companyData, setCompanyData] = useState<CompanyDataType | null>(null);
   const [reportYear, setReportYear] = useState(2025);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [fcfResults, setFcfResults] = useState<any>(null);
 
   const updateCompanyTicker = (event: React.ChangeEvent<HTMLInputElement>) => {
     setCompanyName(event.target.value);
@@ -34,38 +35,6 @@ const FcfCalculatorView = () => {
   const changeYear = (newYear: number) => {
     setReportYear(newYear);
   };
-
-  // const handleVerify = async (
-  //   event: React.MouseEvent<HTMLButtonElement>
-  // ): Promise<void> => {
-  //   // window.alert("verifying: " + companyName);
-  //   try {
-  //     let response = await fetch(`http://localhost:8000/api/get-ticker-info`, {
-  //       method: "POST",
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //       },
-  //       body: JSON.stringify({ companyName }),
-  //     });
-
-  //     let body = await response.json();
-  //     if (body?.data.symbol) {
-  //       setIsValidCompany(true);
-  //       setCompanyData(body.data);
-  //       setErrorMessage(null);
-  //     } else {
-  //       setIsValidCompany(false);
-  //       setCompanyData(null);
-  //       setErrorMessage(body?.data?.error || "Company not found");
-  //     }
-  //     console.log(body);
-  //   } catch (err) {
-  //     // window.alert("Error verifying company ticker.");
-  //     setIsValidCompany(false);
-  //     setCompanyData(null);
-  //     setErrorMessage(err);
-  //   }
-  // };
 
   const handleVerify = async () => {
     try {
@@ -79,7 +48,7 @@ const FcfCalculatorView = () => {
       setIsValidCompany(true);
       setErrorMessage(null);
     } catch (error) {
-      setErrorMessage(error);
+      setErrorMessage(error.message);
     }
   };
 
@@ -100,10 +69,41 @@ const FcfCalculatorView = () => {
         }
       );
       const data = await response.json();
+      setErrorMessage(null);
       console.log(data);
+      setFcfResults(data);
     } catch (error) {
-      setErrorMessage(error);
+      setErrorMessage(error.message);
     }
+  };
+
+  const formatCurrency = (
+    value: number | string | null | undefined,
+    currency?: string
+  ) => {
+    if (value === null || value === undefined || value === "") return "-";
+    const num = Number(value);
+    if (isNaN(num)) return String(value);
+
+    // If a 3-letter ISO currency code is provided, use Intl for proper formatting
+    if (currency && /^[A-Z]{3}$/.test(currency)) {
+      try {
+        return new Intl.NumberFormat(undefined, {
+          style: "currency",
+          currency,
+        }).format(num);
+      } catch (e) {
+        // fall through to manual formatting
+      }
+    }
+
+    const sign = num < 0 ? "-" : "";
+    const abs = Math.abs(num);
+    const formatted = abs.toLocaleString(undefined, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+    return `${sign}${currency ?? ""}${formatted}`;
   };
 
   return (
@@ -142,11 +142,42 @@ const FcfCalculatorView = () => {
         >
           Fetch Annual Report
         </Button>
+        {errorMessage && <div className="error-message">{errorMessage}</div>}
         <hr />
       </div>
       <div className="fcf-results-section">
         {reportYear - 1}-{reportYear % 100} Results for FCF Calculations will go
         here.
+        {fcfResults && (
+          <table>
+            <thead>
+              <tr>
+                <th>Metric</th>
+                <th>Value</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Company Name</td>
+                <td>{companyData?.name}</td>
+              </tr>
+              <tr>
+                <td>Cash From Operating Activities</td>
+                <td>{formatCurrency(fcfResults?.cfo, fcfResults?.currency)}</td>
+              </tr>
+              <tr>
+                <td>Capital Expenditures</td>
+                <td>
+                  {formatCurrency(fcfResults?.capex, fcfResults?.currency)}
+                </td>
+              </tr>
+              <tr>
+                <td>Free Cash Flow</td>
+                <td>{formatCurrency(fcfResults?.fcf, fcfResults?.currency)}</td>
+              </tr>
+            </tbody>
+          </table>
+        )}
       </div>
     </div>
   );

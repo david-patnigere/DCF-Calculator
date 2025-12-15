@@ -1,5 +1,6 @@
 import express from "express";
 import { searchCIK, fetchLatest10K } from "../../services/secService.js";
+import calculateFCF from "../../services/fcfCalc.js";
 
 const router = express.Router();
 
@@ -45,11 +46,9 @@ router.post("/annual-report", async (req, res) => {
 
     console.log("Fetched Annual Report: ", report);
 
-    res.status(200).json({
-      company,
-      cik,
-      annualReport: report,
-    });
+    const fcfResult = await calculateFCF(report.reportURL);
+
+    res.status(200).json(fcfResult);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
