@@ -47,6 +47,7 @@ const FcfCalculatorView = () => {
       setCompanyData(body.data);
       setIsValidCompany(true);
       setErrorMessage(null);
+      setFcfResults(null);
     } catch (error) {
       setErrorMessage(error.message);
     }
