@@ -1,5 +1,5 @@
 import express from "express";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+// import { GoogleGenerativeAI } from "@google/generative-ai";
 import YahooFinanceModule from "yahoo-finance2";
 import dotenv from "dotenv";
 // import analyzeCompanyAnnualReport from "./report-download.js";
@@ -10,7 +10,7 @@ dotenv.config();
 const tickerRouter = express.Router();
 // const client = new openai({ apiKey: process.env.OPENAI_API_KEY });
 
-const client = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+// const client = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 async function getTickerSymbol(companyName) {
   console.log("Trying Yahoo Search");
@@ -67,7 +67,7 @@ tickerRouter.post("/analyze-annual-report", async (req, res) => {
   try {
     const companyName = req.body.companyName;
     const reportYear = req.body.reportYear;
-    const ticker = req.body.ticker;
+    // const ticker = req.body.ticker;
 
     if (!companyName || companyName.trim().length < 2) {
       res.status(400).json({ error: "Invalid Company Name!" });

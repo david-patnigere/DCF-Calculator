@@ -28,3 +28,8 @@
     cursor: pointer;
   }
 }
+
+.no-style {
+  text-decoration: none;
+  color: inherit;
+}

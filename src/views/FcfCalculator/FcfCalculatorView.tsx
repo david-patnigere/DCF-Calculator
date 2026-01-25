@@ -4,10 +4,15 @@ import TextField from "@mui/material/TextField";
 import "./FcfCalculatorView.css";
 import { Chip, styled } from "@mui/material";
 import Dropdown from "./Dropdown";
+// import { saveCashFlowData } from "../../../backend/services/saveCashFlow";
 
 const StyledChip = styled(Chip)({
   padding: "1rem",
   margin: "10px",
+});
+
+const StyledButton = styled(Button)({
+  margin: "0 10px",
 });
 
 type CompanyDataType = {
@@ -34,6 +39,21 @@ const FcfCalculatorView = () => {
 
   const changeYear = (newYear: number) => {
     setReportYear(newYear);
+  };
+
+  const saveCashFlowData = async (data: any) => {
+    const response = await fetch(
+      "http://localhost:8000/api/services/save-cash-flow",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      }
+    );
+    const result = await response.json();
+    console.log("Cash flow data saved:", result);
   };
 
   const handleVerify = async () => {
@@ -73,6 +93,12 @@ const FcfCalculatorView = () => {
       setErrorMessage(null);
       console.log(data);
       setFcfResults(data);
+      saveCashFlowData({
+        ...data,
+        companyName: companyData.name,
+        cik: companyData.cik,
+        reportYear,
+      });
     } catch (error) {
       setErrorMessage(error.message);
     }
@@ -136,19 +162,24 @@ const FcfCalculatorView = () => {
           options={yearOptions}
           onChange={changeYear}
         />
-        <Button
+        <StyledButton
           variant="contained"
           onClick={handleFetchAR}
           disabled={!isValidCompany}
         >
-          Fetch Annual Report
-        </Button>
+          Calculate FCF (Single Year)
+        </StyledButton>
+        <StyledButton
+          variant="contained"
+          onClick={handleFetchAR}
+          disabled={!isValidCompany}
+        >
+          Calculate DCF (5 yr)
+        </StyledButton>
         {errorMessage && <div className="error-message">{errorMessage}</div>}
         <hr />
       </div>
       <div className="fcf-results-section">
-        {reportYear - 1}-{reportYear % 100} Results for FCF Calculations will go
-        here.
         {fcfResults && (
           <table>
             <thead>
