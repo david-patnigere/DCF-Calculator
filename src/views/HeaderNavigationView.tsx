@@ -9,8 +9,8 @@ const HeaderNavigationView = () => {
         <Link to="/" className="no-style">
           Overview
         </Link>
-        <Link to="/fcf-calculator" className="no-style">
-          FCF Calculator
+        <Link to="/Dcf-calculator" className="no-style">
+          DCF Calculator
         </Link>
       </nav>
     </div>

@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import Button from "@mui/material/Button";
-import TextField from "@mui/material/TextField";
-import "./FcfCalculatorView.css";
+import "./DcfCalculatorView.css";
 import { Chip, styled } from "@mui/material";
 import Dropdown from "./Dropdown";
-// import { saveCashFlowData } from "../../../backend/services/saveCashFlow";
+import CompanyForm from "./CompanyForm";
+import DcfInputs from "./DcfInputs";
 
 const StyledChip = styled(Chip)({
   padding: "1rem",
@@ -73,10 +73,12 @@ const FcfCalculatorView = () => {
     }
   };
 
-  const handleFetchAR = async () => {
+  //this function will call the backend to initiate the DCF calculation
+  const calculateDcf = async () => {
+    // Send the verified company data to the backend for the whole DCF calculation
     try {
       const response = await fetch(
-        "http://localhost:8000/api/usa/annual-report",
+        "http://localhost:8000/api/services/calculate-dcf",
         {
           method: "POST",
           headers: {
@@ -84,25 +86,47 @@ const FcfCalculatorView = () => {
           },
           body: JSON.stringify({
             companyName: companyData.name,
-            reportYear,
             cik: companyData.cik,
+            latestYear: reportYear,
           }),
         }
       );
-      const data = await response.json();
-      setErrorMessage(null);
-      console.log(data);
-      setFcfResults(data);
-      saveCashFlowData({
-        ...data,
-        companyName: companyData.name,
-        cik: companyData.cik,
-        reportYear,
-      });
     } catch (error) {
-      setErrorMessage(error.message);
+      setErrorMessage("DCF Calculation Failed!!!: " + error.message);
     }
   };
+
+  // const handleFetchAR = async () => {
+  //   try {
+  //     calculateDcf();
+  //     const response = await fetch(
+  //       "http://localhost:8000/api/usa/annual-report",
+  //       {
+  //         method: "POST",
+  //         headers: {
+  //           "Content-Type": "application/json",
+  //         },
+  //         body: JSON.stringify({
+  //           companyName: companyData.name,
+  //           reportYear,
+  //           cik: companyData.cik,
+  //         }),
+  //       }
+  //     );
+  //     const data = await response.json();
+  //     setErrorMessage(null);
+  //     console.log(data);
+  //     setFcfResults(data);
+  //     saveCashFlowData({
+  //       ...data,
+  //       companyName: companyData.name,
+  //       cik: companyData.cik,
+  //       reportYear,
+  //     });
+  //   } catch (error) {
+  //     setErrorMessage(error.message);
+  //   }
+  // };
 
   const formatCurrency = (
     value: number | string | null | undefined,
@@ -135,50 +159,20 @@ const FcfCalculatorView = () => {
 
   return (
     <div className="fcf-calculator-view">
-      <div className="company-input">
-        <TextField
-          id="company-name-input"
-          placeholder="Enter Company Name"
-          label="Company Name"
-          variant="outlined"
-          value={companyName}
-          onChange={updateCompanyTicker}
-          style={{ padding: "0.5rem" }}
-          className="company-text-input"
-        />
-        <Button variant="contained" onClick={handleVerify}>
-          Verify Company Name
-        </Button>
-      </div>
-      <div className="annual-report-section" hidden={!isValidCompany}>
-        <StyledChip
-          label={companyData?.name}
-          color="primary"
-          variant="outlined"
-        />
-        <Dropdown
-          label="Report Year"
-          value={reportYear}
-          options={yearOptions}
-          onChange={changeYear}
-        />
-        <StyledButton
-          variant="contained"
-          onClick={handleFetchAR}
-          disabled={!isValidCompany}
-        >
-          Calculate FCF (Single Year)
-        </StyledButton>
-        <StyledButton
-          variant="contained"
-          onClick={handleFetchAR}
-          disabled={!isValidCompany}
-        >
-          Calculate DCF (5 yr)
-        </StyledButton>
-        {errorMessage && <div className="error-message">{errorMessage}</div>}
-        <hr />
-      </div>
+      <CompanyForm
+        companyName={companyName}
+        updateCompanyTicker={updateCompanyTicker}
+        handleVerify={handleVerify}
+      />
+      <DcfInputs
+        isValidCompany={isValidCompany}
+        companyName={companyData?.name}
+        reportYear={reportYear}
+        yearOptions={yearOptions}
+        changeYear={changeYear}
+        calculateDcf={calculateDcf}
+        errorMessage={errorMessage}
+      />
       <div className="fcf-results-section">
         {fcfResults && (
           <table>

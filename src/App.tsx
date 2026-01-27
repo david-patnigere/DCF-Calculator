@@ -2,7 +2,7 @@ import "./App.css";
 import HeaderNavigationContainer from "./components/HeaderNavigationContainer";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import OverviewContainer from "./components/Overview/OverviewContainer";
-import FcfCalculatorContainer from "./components/FcfCalculator/FcfCalculatorContainer";
+import DcfCalculatorContainer from "./components/DcfCalculator/DcfCalculatorContainer";
 
 export default function App() {
   return (
@@ -14,8 +14,8 @@ export default function App() {
           <Routes>
             <Route path="/" element={<OverviewContainer />} />
             <Route
-              path="/fcf-calculator"
-              element={<FcfCalculatorContainer />}
+              path="/dcf-calculator"
+              element={<DcfCalculatorContainer />}
             />
           </Routes>
         </div>
