@@ -1,8 +1,20 @@
 import Button from "@mui/material/Button";
+import Chip from "@mui/material/Chip";
+import { styled } from "@mui/material/styles";
 import TextField from "@mui/material/TextField";
 import React from "react";
 
-const CompanyForm = ({ companyName, updateCompanyTicker, handleVerify }) => {
+const StyledChip = styled(Chip)({
+  padding: "1rem",
+  margin: "10px",
+});
+
+const CompanyForm = ({
+  companyName,
+  updateCompanyTicker,
+  handleVerify,
+  companyData,
+}) => {
   return (
     <div className="company-input">
       <TextField
@@ -18,6 +30,13 @@ const CompanyForm = ({ companyName, updateCompanyTicker, handleVerify }) => {
       <Button variant="contained" onClick={handleVerify}>
         Verify Company Name
       </Button>
+      {companyData && (
+        <StyledChip
+          label={companyData.name}
+          color="primary"
+          variant="outlined"
+        />
+      )}
     </div>
   );
 };

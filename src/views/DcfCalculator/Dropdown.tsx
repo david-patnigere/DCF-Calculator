@@ -1,5 +1,5 @@
 import { MenuItem, Select } from "@mui/material";
-import { FC, useState } from "react";
+import { FC } from "react";
 
 type DropdownType = {
   label: string;

@@ -1,26 +1,43 @@
 This is a project that will attempt to create a web app that will perform the Discounted Cash Flow Valuation for a company.
-The main input will be a copy of the Annual Report of the company that needs to be valued
 
-The development steps are as follows:
+The layers for the application are as follows:
 
-A. Basic Flow:
+1. Data ingestion layer
 
-1. Create a form on the UI to allow the user to input a company to search
-2. Check the online databases for the company info (currently US companies only)
-3. Allow the user to select the latest year for the DCF Calculation. The past 5 years from the selected year will be taken
-4. Send the Company info and selected year to the backend.
-5. Verify in the backend that the company is present in the database.
-6. If no data is present for that company, go to the flow for Fetching Data.
-7. Verify if the cash flow data is present for the selected year and preceding 4 years.
-8. If data for any year is missing go to the flow for Fetching Data.
-9. Fetch the free cash flow data for the required 5 year period.
-10. Use the 5 year free cash flows to calculate the DCF for the company.
-11. Send the results back to the front end.
+- This is the layer in the backend which will accept a company name/ticker from the UI and fetch the annual report for that company from the Stock Exchange
+- The annual report that is fetched will then be parsed by Gemini to fetch the following details:
+  - Cash From Operating Activities
+  - Capital Expenditures
+  - Debt Ratio
+  - Equity Ratio
+  - Net Debt
+  - Shares Outstanding
 
-B. Fetching Data:
+2. Validation layer
 
-1. Identify which data is missing (Company or Year).
-2. Fetch the Annual Report for the missing year from the specified site.
-3. Upload the Annual Report to Gemini for the Free Cash Flow calculations.
-4. Write the Free Cash Flow data to the database. Ensure no duplication is done.
-5. Return to the Basic Flow steps.
+- Here, the data returned by Gemini will undergo some basic validation before it is sent to the storage layer for later use.
+- This layer is currently very thin and will need further work.
+
+3. Storage layer
+
+- MongoDB is being used to store the validated financial data of the company that has been parsed by Gemini.
+- Each entry in the Database will be keyed by the company ticker or cik value.
+- Financial data of each company over multiple years will be stored as an array within the company entry.
+
+4. Valuation engine
+
+- If the complete company financial data is present, then this layer will perform the basic calculation of the DCF model.
+
+5. Assumption modeling
+
+- TBD
+
+6. Sensitivity analysis
+
+- TBD
+
+7. Frontend presentation
+
+- Currently showing basic tables for the project cashflows.
+- Showing a basic form to input the variables for the Valuation Model.
+- A simple table to show the final valuation band for the company stock

@@ -1,4 +1,4 @@
-import CompanyCashFlow from "../models/CompanyCashFlow.js";
+import CompanyFinancialData from "../models/CompanyFinancialData.js";
 
 export async function isCompanyDataComplete(companyName, cik, latestYear) {
   let response = {};
@@ -9,7 +9,7 @@ export async function isCompanyDataComplete(companyName, cik, latestYear) {
     latestYear - 3,
     latestYear - 4,
   ];
-  const companyData = await CompanyCashFlow.findOne({
+  const companyData = await CompanyFinancialData.findOne({
     companyName: companyName,
     id: cik,
   });
@@ -21,7 +21,7 @@ export async function isCompanyDataComplete(companyName, cik, latestYear) {
     };
   } else {
     console.log("Company Found", companyData.companyName);
-    const yearEntries = companyData.cashFlowData
+    const yearEntries = companyData.financialData
       .filter((entry) => yearsToCheck.includes(entry.reportYear))
       .map((entry) => entry.reportYear);
     console.log("Year Entries Found: ", yearEntries);

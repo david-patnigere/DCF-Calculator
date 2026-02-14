@@ -1,15 +1,11 @@
 import React, { useState } from "react";
 import Button from "@mui/material/Button";
 import "./DcfCalculatorView.css";
-import { Chip, styled } from "@mui/material";
-import Dropdown from "./Dropdown";
+import { CircularProgress, styled } from "@mui/material";
 import CompanyForm from "./CompanyForm";
 import DcfInputs from "./DcfInputs";
-
-const StyledChip = styled(Chip)({
-  padding: "1rem",
-  margin: "10px",
-});
+import CashTable from "./CashTable";
+import { generateFutureCashFlows } from "./Helpers";
 
 const StyledButton = styled(Button)({
   margin: "0 10px",
@@ -27,33 +23,25 @@ const FcfCalculatorView = () => {
   const [companyName, setCompanyName] = useState("");
   const [isValidCompany, setIsValidCompany] = useState<boolean>(false);
   const [companyData, setCompanyData] = useState<CompanyDataType | null>(null);
-  const [reportYear, setReportYear] = useState(2025);
+  const [reportYear, setReportYear] = useState<number>(2025);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [fcfResults, setFcfResults] = useState<any>(null);
+  const [amountUnits, setAmountUnits] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false);
+  const [growthRate, setGrowthRate] = useState<number | null>(5);
+  const [discountRate, setDiscountRate] = useState<number | null>(7);
+  const [futureFCF, setFutureFCF] = useState<any>(null);
 
   const updateCompanyTicker = (event: React.ChangeEvent<HTMLInputElement>) => {
     setCompanyName(event.target.value);
   };
-
+  // const newDate = new Date();
+  const currentYear = new Date().getFullYear() - 1;
+  // console.log("Current Year: ", currentYear);
   const yearOptions = [2025, 2024, 2023, 2022, 2021];
 
   const changeYear = (newYear: number) => {
     setReportYear(newYear);
-  };
-
-  const saveCashFlowData = async (data: any) => {
-    const response = await fetch(
-      "http://localhost:8000/api/services/save-cash-flow",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      }
-    );
-    const result = await response.json();
-    console.log("Cash flow data saved:", result);
   };
 
   const handleVerify = async () => {
@@ -73,12 +61,13 @@ const FcfCalculatorView = () => {
     }
   };
 
-  //this function will call the backend to initiate the DCF calculation
-  const calculateDcf = async () => {
+  //this function will call the backend to fetch the historical cash flow data
+  const fetchCashFlows = async () => {
     // Send the verified company data to the backend for the whole DCF calculation
     try {
+      setLoading(true);
       const response = await fetch(
-        "http://localhost:8000/api/services/calculate-dcf",
+        "http://localhost:8000/api/services/fetch-cash-flows",
         {
           method: "POST",
           headers: {
@@ -87,46 +76,38 @@ const FcfCalculatorView = () => {
           body: JSON.stringify({
             companyName: companyData.name,
             cik: companyData.cik,
-            latestYear: reportYear,
+            latestYear: currentYear,
           }),
         }
       );
+      if (!response.ok) {
+        const errorBody = await response.json();
+        throw new Error(
+          errorBody.message || "Failed to fetch cash flows from backend"
+        );
+      }
+      const body = await response.json();
+      console.log("Calculation Body: ", body);
+      setFcfResults(body.data.financialData);
+      setAmountUnits(body.data.units);
+      setErrorMessage(null);
+      setLoading(false);
     } catch (error) {
       setErrorMessage("DCF Calculation Failed!!!: " + error.message);
+      setLoading(false);
     }
   };
 
-  // const handleFetchAR = async () => {
-  //   try {
-  //     calculateDcf();
-  //     const response = await fetch(
-  //       "http://localhost:8000/api/usa/annual-report",
-  //       {
-  //         method: "POST",
-  //         headers: {
-  //           "Content-Type": "application/json",
-  //         },
-  //         body: JSON.stringify({
-  //           companyName: companyData.name,
-  //           reportYear,
-  //           cik: companyData.cik,
-  //         }),
-  //       }
-  //     );
-  //     const data = await response.json();
-  //     setErrorMessage(null);
-  //     console.log(data);
-  //     setFcfResults(data);
-  //     saveCashFlowData({
-  //       ...data,
-  //       companyName: companyData.name,
-  //       cik: companyData.cik,
-  //       reportYear,
-  //     });
-  //   } catch (error) {
-  //     setErrorMessage(error.message);
-  //   }
-  // };
+  const handleGenerateFutureCashFlows = () => {
+    let generated;
+    try {
+      generated = generateFutureCashFlows(fcfResults, growthRate, discountRate);
+
+      setFutureFCF(generated);
+    } catch (error) {
+      setErrorMessage("Failed to generate future cash flows: " + error.message);
+    }
+  };
 
   const formatCurrency = (
     value: number | string | null | undefined,
@@ -157,52 +138,84 @@ const FcfCalculatorView = () => {
     return `${sign}${currency ?? ""}${formatted}`;
   };
 
+  const formState = {
+    isValidCompany,
+    companyName,
+    yearOptions,
+    reportYear,
+    errorMessage,
+    growthRate,
+    discountRate,
+  };
+  const formUpdateHandlers = {
+    changeYear,
+    setGrowthRate,
+    setDiscountRate,
+    fetchCashFlows,
+  };
+
   return (
     <div className="fcf-calculator-view">
       <CompanyForm
         companyName={companyName}
         updateCompanyTicker={updateCompanyTicker}
         handleVerify={handleVerify}
+        companyData={companyData}
       />
-      <DcfInputs
-        isValidCompany={isValidCompany}
-        companyName={companyData?.name}
-        reportYear={reportYear}
-        yearOptions={yearOptions}
-        changeYear={changeYear}
-        calculateDcf={calculateDcf}
-        errorMessage={errorMessage}
-      />
+      {companyData && (
+        <StyledButton
+          variant="contained"
+          onClick={fetchCashFlows}
+          disabled={!isValidCompany}
+        >
+          Fetch Cash Flows (5 yr)
+        </StyledButton>
+      )}
+      <hr />
       <div className="fcf-results-section">
+        {loading && <CircularProgress />}
+        {errorMessage && <div className="error-message">{errorMessage}</div>}
         {fcfResults && (
-          <table>
-            <thead>
-              <tr>
-                <th>Metric</th>
-                <th>Value</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>Company Name</td>
-                <td>{companyData?.name}</td>
-              </tr>
-              <tr>
-                <td>Cash From Operating Activities</td>
-                <td>{formatCurrency(fcfResults?.cfo, fcfResults?.currency)}</td>
-              </tr>
-              <tr>
-                <td>Capital Expenditures</td>
-                <td>
-                  {formatCurrency(fcfResults?.capex, fcfResults?.currency)}
-                </td>
-              </tr>
-              <tr>
-                <td>Free Cash Flow</td>
-                <td>{formatCurrency(fcfResults?.fcf, fcfResults?.currency)}</td>
-              </tr>
-            </tbody>
-          </table>
+          <>
+            <CashTable
+              cashFlowData={fcfResults}
+              amountUnits={amountUnits}
+              headers={[
+                "Year",
+                "Cash From Operations",
+                "Capital Expenditures",
+                "Free Cash Flow",
+                "Units",
+                "Currency",
+              ]}
+            />
+            <div>
+              <span>
+                Average Free Cash Flow:{" "}
+                {formatCurrency(
+                  fcfResults.reduce(
+                    (sum, entry) => sum + entry.freeCashFlow,
+                    0
+                  ) / fcfResults.length,
+                  fcfResults[0]?.currency
+                )}
+              </span>
+            </div>
+            <StyledButton
+              variant="contained"
+              onClick={handleGenerateFutureCashFlows}
+              disabled={!isValidCompany}
+            >
+              Generate Future Cash Flows
+            </StyledButton>
+            {futureFCF && (
+              <CashTable
+                cashFlowData={futureFCF}
+                amountUnits={amountUnits}
+                headers={["Year", "Free Cash Flow", "Present Value"]}
+              />
+            )}
+          </>
         )}
       </div>
     </div>

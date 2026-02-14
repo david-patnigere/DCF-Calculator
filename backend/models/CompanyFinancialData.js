@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const CashFlowEntrySchema = new mongoose.Schema(
+const FinancialDataSchema = new mongoose.Schema(
   {
     reportYear: {
       type: Number,
@@ -27,6 +27,26 @@ const CashFlowEntrySchema = new mongoose.Schema(
       default: "USD",
     },
 
+    debtRatio: {
+      type: Number,
+      default: 0,
+    },
+
+    equityRatio: {
+      type: Number,
+      default: 0,
+    },
+
+    netDebt: {
+      type: Number,
+      default: 0,
+    },
+
+    sharesOutstanding: {
+      type: Number,
+      default: 0,
+    },
+
     source: {
       type: String,
       default: "SEC-10K",
@@ -35,7 +55,7 @@ const CashFlowEntrySchema = new mongoose.Schema(
   { _id: false } // important: prevents auto _id for array items
 );
 
-const CompanyCashFlowSchema = new mongoose.Schema(
+const CompanyFinancialDataSchema = new mongoose.Schema(
   {
     companyName: {
       type: String,
@@ -47,12 +67,15 @@ const CompanyCashFlowSchema = new mongoose.Schema(
       index: true,
     },
 
-    cashFlowData: {
-      type: [CashFlowEntrySchema],
+    financialData: {
+      type: [FinancialDataSchema],
       default: [],
     },
   },
   { timestamps: true }
 );
 
-export default mongoose.model("CompanyCashFlow", CompanyCashFlowSchema);
+export default mongoose.model(
+  "CompanyFinancialData",
+  CompanyFinancialDataSchema
+);
