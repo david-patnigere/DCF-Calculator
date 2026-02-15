@@ -25,7 +25,7 @@ const FcfCalculatorView = () => {
   const [companyData, setCompanyData] = useState<CompanyDataType | null>(null);
   const [reportYear, setReportYear] = useState<number>(2025);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [fcfResults, setFcfResults] = useState<any>(null);
+  const [financialDataResults, setFinancialDataResults] = useState<any>(null);
   const [amountUnits, setAmountUnits] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [growthRate, setGrowthRate] = useState<number | null>(5);
@@ -55,7 +55,7 @@ const FcfCalculatorView = () => {
       setCompanyData(body.data);
       setIsValidCompany(true);
       setErrorMessage(null);
-      setFcfResults(null);
+      setFinancialDataResults(null);
     } catch (error) {
       setErrorMessage(error.message);
     }
@@ -88,7 +88,7 @@ const FcfCalculatorView = () => {
       }
       const body = await response.json();
       console.log("Calculation Body: ", body);
-      setFcfResults(body.data.financialData);
+      setFinancialDataResults(body.data.financialData);
       setAmountUnits(body.data.units);
       setErrorMessage(null);
       setLoading(false);
@@ -101,7 +101,11 @@ const FcfCalculatorView = () => {
   const handleGenerateFutureCashFlows = () => {
     let generated;
     try {
-      generated = generateFutureCashFlows(fcfResults, growthRate, discountRate);
+      generated = generateFutureCashFlows(
+        financialDataResults,
+        growthRate,
+        discountRate
+      );
 
       setFutureFCF(generated);
     } catch (error) {
@@ -175,10 +179,10 @@ const FcfCalculatorView = () => {
       <div className="fcf-results-section">
         {loading && <CircularProgress />}
         {errorMessage && <div className="error-message">{errorMessage}</div>}
-        {fcfResults && (
+        {financialDataResults && (
           <>
             <CashTable
-              cashFlowData={fcfResults}
+              financialData={financialDataResults}
               amountUnits={amountUnits}
               headers={[
                 "Year",
@@ -193,11 +197,11 @@ const FcfCalculatorView = () => {
               <span>
                 Average Free Cash Flow:{" "}
                 {formatCurrency(
-                  fcfResults.reduce(
+                  financialDataResults.reduce(
                     (sum, entry) => sum + entry.freeCashFlow,
                     0
-                  ) / fcfResults.length,
-                  fcfResults[0]?.currency
+                  ) / financialDataResults.length,
+                  financialDataResults[0]?.currency
                 )}
               </span>
             </div>
@@ -208,13 +212,13 @@ const FcfCalculatorView = () => {
             >
               Generate Future Cash Flows
             </StyledButton>
-            {futureFCF && (
+            {/* {futureFCF && (
               <CashTable
                 cashFlowData={futureFCF}
                 amountUnits={amountUnits}
                 headers={["Year", "Free Cash Flow", "Present Value"]}
               />
-            )}
+            )} */}
           </>
         )}
       </div>

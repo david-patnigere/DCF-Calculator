@@ -43,17 +43,17 @@ export async function saveFinancialData(data) {
       const newCompanyCashFlow = new CompanyFinancialData({
         companyName: data.companyName,
         id: data.cik,
-        cashFlowData: [
+        financialData: [
           {
             reportYear: data.reportYear,
-            cashFromOperatingActivities: data.cfo,
-            capitalExpenditures: data.capex,
+            cashFromOperatingActivities: data.cashFromOperatingActivities,
+            capitalExpenditures: data.capitalExpenditures,
             unit: data.unit,
             currency: data.currency,
-            debtRatio: data.debt_ratio,
-            equityRatio: data.equity_ratio,
-            netDebt: data.net_debt,
-            sharesOutstanding: data.shares_outstanding,
+            debtRatio: data.debtRatio,
+            equityRatio: data.equityRatio,
+            netDebt: data.netDebt,
+            sharesOutstanding: data.sharesOutstanding,
           },
         ],
       });

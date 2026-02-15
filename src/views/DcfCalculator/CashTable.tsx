@@ -37,7 +37,17 @@ const formatCurrency = (
   return `${sign}${currency ?? ""}${formatted}`;
 };
 
-const CashTable = ({ cashFlowData, amountUnits, headers }) => {
+const CashTable = ({ financialData, amountUnits, headers }) => {
+  const cashFlowData = financialData.map((entry: any) => {
+    return {
+      reportYear: entry.reportYear,
+      cashFromOperatingActivities: entry.cashFromOperatingActivities,
+      capitalExpenditures: entry.capitalExpenditures,
+      freeCashFlow: entry.freeCashFlow,
+      currency: entry.currency,
+      units: amountUnits,
+    };
+  });
   return (
     <TableContainer component={Paper}>
       <Table sx={{ minWidth: 650 }}>
@@ -51,8 +61,6 @@ const CashTable = ({ cashFlowData, amountUnits, headers }) => {
         <TableBody>
           {cashFlowData.map((result: any, index: number) => (
             <TableRow key={index}>
-              {/* <TableCell>{result.reportYear}</TableCell> */}
-              {/* <span>{typeof result}</span> */}
               {Object.keys(result).map((key: string) => {
                 // if (key !== "reportYear") {
                 return (
@@ -65,18 +73,6 @@ const CashTable = ({ cashFlowData, amountUnits, headers }) => {
                 // }
                 // return null;
               })}
-              {/* <TableCell align="center">
-                {formatCurrency(
-                  result.cashFromOperatingActivities,
-                  result.currency
-                )}
-              </TableCell>
-              <TableCell align="center">
-                {formatCurrency(result.capitalExpenditures, result.currency)}
-              </TableCell>
-              <TableCell align="center">
-                {formatCurrency(result.freeCashFlow, result.currency)}
-              </TableCell> */}
             </TableRow>
           ))}
         </TableBody>
