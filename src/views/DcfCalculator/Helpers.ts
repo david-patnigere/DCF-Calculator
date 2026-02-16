@@ -1,7 +1,8 @@
 export const generateFutureCashFlows = (
   fcfResults: any[],
   growthRate: number,
-  discountRate: number
+  discountRate: number,
+  currentYear: number
 ) => {
   if (!fcfResults || growthRate === null || discountRate === null) {
     throw new Error("Missing required data for cash flow generation");
@@ -19,9 +20,10 @@ export const generateFutureCashFlows = (
     const fcf = avgFcf * Math.pow(1 + growthRate / 100, i);
     const pv = fcf / Math.pow(1 + discountRate / 100, i);
     generated.push({
-      reportYear: new Date().getFullYear() + i,
+      reportYear: currentYear + i,
       freeCashFlow: fcf,
       presentValue: pv,
+      currency: fcfResults[0]?.currency || "USD",
     });
   }
   return generated;

@@ -6,6 +6,7 @@ import CompanyForm from "./CompanyForm";
 import DcfInputs from "./DcfInputs";
 import CashTable from "./CashTable";
 import { generateFutureCashFlows } from "./Helpers";
+import DataPresentation from "./DataPresentation";
 
 const StyledButton = styled(Button)({
   margin: "0 10px",
@@ -23,14 +24,21 @@ const FcfCalculatorView = () => {
   const [companyName, setCompanyName] = useState("");
   const [isValidCompany, setIsValidCompany] = useState<boolean>(false);
   const [companyData, setCompanyData] = useState<CompanyDataType | null>(null);
-  const [reportYear, setReportYear] = useState<number>(2025);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [financialDataResults, setFinancialDataResults] = useState<any>(null);
   const [amountUnits, setAmountUnits] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [growthRate, setGrowthRate] = useState<number | null>(5);
+  const [terminalGrowthRate, setTerminalGrowthRate] = useState<number | null>(
+    5
+  );
   const [discountRate, setDiscountRate] = useState<number | null>(7);
   const [futureFCF, setFutureFCF] = useState<any>(null);
+  const avgFcf =
+    financialDataResults?.reduce(
+      (sum: number, entry: any) => sum + entry.freeCashFlow,
+      0
+    ) / financialDataResults?.length || 0;
 
   const updateCompanyTicker = (event: React.ChangeEvent<HTMLInputElement>) => {
     setCompanyName(event.target.value);
@@ -38,11 +46,6 @@ const FcfCalculatorView = () => {
   // const newDate = new Date();
   const currentYear = new Date().getFullYear() - 1;
   // console.log("Current Year: ", currentYear);
-  const yearOptions = [2025, 2024, 2023, 2022, 2021];
-
-  const changeYear = (newYear: number) => {
-    setReportYear(newYear);
-  };
 
   const handleVerify = async () => {
     try {
@@ -104,8 +107,10 @@ const FcfCalculatorView = () => {
       generated = generateFutureCashFlows(
         financialDataResults,
         growthRate,
-        discountRate
+        discountRate,
+        currentYear
       );
+      console.log("Generated Future Cash Flows: ", generated);
 
       setFutureFCF(generated);
     } catch (error) {
@@ -143,19 +148,17 @@ const FcfCalculatorView = () => {
   };
 
   const formState = {
-    isValidCompany,
-    companyName,
-    yearOptions,
-    reportYear,
-    errorMessage,
+    avgFcf,
     growthRate,
     discountRate,
+    terminalGrowthRate,
+    currency: financialDataResults ? financialDataResults[0]?.currency : "INR",
   };
   const formUpdateHandlers = {
-    changeYear,
     setGrowthRate,
     setDiscountRate,
-    fetchCashFlows,
+    setTerminalGrowthRate,
+    formatCurrency,
   };
 
   return (
@@ -193,17 +196,15 @@ const FcfCalculatorView = () => {
                 "Currency",
               ]}
             />
-            <div>
-              <span>
+            <div className="dcf-inputs">
+              {/* <span>
                 Average Free Cash Flow:{" "}
-                {formatCurrency(
-                  financialDataResults.reduce(
-                    (sum, entry) => sum + entry.freeCashFlow,
-                    0
-                  ) / financialDataResults.length,
-                  financialDataResults[0]?.currency
-                )}
-              </span>
+                {formatCurrency(avgFcf, financialDataResults[0]?.currency)}
+              </span> */}
+              <DcfInputs
+                formState={formState}
+                formUpdateHandlers={formUpdateHandlers}
+              />
             </div>
             <StyledButton
               variant="contained"
@@ -212,13 +213,16 @@ const FcfCalculatorView = () => {
             >
               Generate Future Cash Flows
             </StyledButton>
-            {/* {futureFCF && (
-              <CashTable
+            {futureFCF && (
+              <DataPresentation
                 cashFlowData={futureFCF}
                 amountUnits={amountUnits}
-                headers={["Year", "Free Cash Flow", "Present Value"]}
+                financialDataResults={financialDataResults}
+                terminalGrowthRate={terminalGrowthRate}
+                discountRate={discountRate}
+                formatCurrency={formatCurrency}
               />
-            )} */}
+            )}
           </>
         )}
       </div>

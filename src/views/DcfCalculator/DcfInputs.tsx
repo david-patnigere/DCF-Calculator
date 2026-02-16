@@ -15,18 +15,46 @@ const StyledButton = styled(Button)({
 });
 
 const DcfInputs = ({ formState, formUpdateHandlers }) => {
+  const { avgFcf, growthRate, discountRate, terminalGrowthRate, currency } =
+    formState;
   const {
-    isValidCompany,
-    companyName,
-    reportYear,
-    yearOptions,
-    errorMessage,
-    growthRate,
-    discountRate,
-  } = formState;
-  const { changeYear, setGrowthRate, setDiscountRate, calculateDcf } =
-    formUpdateHandlers;
-  return <div className="annual-report-section" hidden={!isValidCompany}></div>;
+    setGrowthRate,
+    setDiscountRate,
+    setTerminalGrowthRate,
+    formatCurrency,
+  } = formUpdateHandlers;
+  return (
+    <div className="dcf-inputs-section">
+      <StyledChip label={`Average FCF: ${formatCurrency(avgFcf, currency)}`} />
+      <div>
+        <span>Growth Rate: </span>
+        <Input
+          type="number"
+          value={growthRate}
+          onChange={(e) => setGrowthRate(Number(e.target.value))}
+          placeholder="Growth Rate"
+        />
+      </div>
+      <div>
+        <span>Discount Rate: </span>
+        <Input
+          type="number"
+          value={discountRate}
+          onChange={(e) => setDiscountRate(Number(e.target.value))}
+          placeholder="Discount Rate"
+        />
+      </div>
+      <div>
+        <span>Terminal Growth Rate: </span>
+        <Input
+          type="number"
+          value={terminalGrowthRate}
+          onChange={(e) => setTerminalGrowthRate(Number(e.target.value))}
+          placeholder="Terminal Growth Rate"
+        />
+      </div>
+    </div>
+  );
 };
 
 export default DcfInputs;

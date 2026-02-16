@@ -15,33 +15,88 @@ async function parseAnnualReport(url) {
 
   // The detailed prompt for structured data extraction
   const prompt = `
-        From the 10-K report available at the following URL: ${url}, 
-        extract the financial data from the Statement of Cash Flows for the MOST RECENT fiscal year.
+        You are a financial statement extraction engine.
 
-        I need four specific values:
-        1. Cash Flow from Operating Activities (CFO)
-        2. Capital Expenditures (CapEx) - usually listed under Cash Flow from Investing Activities as 'Purchases of Property, Plant, and Equipment'. 
-           Please provide CapEx as a POSITIVE numerical value.
-        3. The Debt Ratio usually found in the Balance Sheet or Notes to Financial Statements.
-        4. The Equity Ratio usually found in the Balance Sheet or Notes to Financial Statements.
-        5. The Net Debt of the company in the current year.
-        6. The Number of Shares Outstanding for the current year.
+STRICT INSTRUCTIONS:
+- Use ONLY the data explicitly stated in the 10-K document available at the provided URL.
+- DO NOT estimate, approximate, interpolate, or infer missing values.
+- DO NOT calculate ratios unless all components are explicitly found in the document.
+- If a required value is not explicitly available, return null.
+- Use the MOST RECENT fiscal year column only.
+- Use CONSOLIDATED financial statements only (not parent-only statements).
+- Use the primary Statement of Cash Flows, Balance Sheet, and Notes if required.
 
-        Additionally, please provide the units (e.g., In Millions, In Thousands) and the currency (e.g., USD) used in the report.
+TASK:
 
-        Provide the output STRICTLY in the following JSON format. Ensure all values are numerical 
-        (no commas, currency symbols, or trailing text). If the 10-K uses 'in thousands', provide the value in thousands:
+From the 10-K report at the following URL: ${url},
 
-        {
-          "unit": "[e.g., In Millions or In Thousands]",
-          "cfo_value": [CFO Numerical Value],
-          "capex_value": [CapEx Numerical Value],
-          "debt_ratio": [Debt Ratio Value],
-          "equity_ratio": [Equity Ratio Value],
-          "net_debt": [Net Debt Value],
-          "shares_outstanding": [Shares Outstanding Value],
-          "currency": "[e.g., USD]"
-        }
+Extract the following values for the MOST RECENT fiscal year:
+
+1) Cash Flow from Operating Activities (CFO)
+   - Exact line item typically labeled:
+     "Net cash provided by operating activities"
+   - Must come from the Statement of Cash Flows.
+
+2) Capital Expenditures (CapEx)
+   - Exact line item typically labeled:
+     "Purchases of property, plant and equipment"
+     OR
+     "Capital expenditures"
+   - Must come from the Statement of Cash Flows under Investing Activities.
+   - Return CapEx as a POSITIVE number (absolute value).
+
+3) Debt Ratio
+   - If explicitly provided in the report, extract it.
+   - If not explicitly provided, calculate as:
+     Total Liabilities / Total Assets
+   - Use values from the Consolidated Balance Sheet.
+
+4) Equity Ratio
+   - If explicitly provided in the report, extract it.
+   - If not explicitly provided, calculate as:
+     Total Shareholders’ Equity / Total Assets
+
+5) Net Debt
+   - Calculate as:
+     Total Debt (Short-term Debt + Long-term Debt)
+     MINUS
+     Cash and Cash Equivalents
+   - All components must be explicitly found in the Balance Sheet or Notes.
+
+6) Shares Outstanding
+   - Extract from:
+     "Weighted-average shares outstanding (basic)"
+     OR
+     "Common shares outstanding"
+   - Use the most recent fiscal year.
+
+UNITS & CURRENCY:
+- Identify the unit stated in the financial statements header (e.g., "in millions", "in thousands").
+- DO NOT convert the values.
+- Preserve the reported unit exactly as written.
+- Identify the reporting currency exactly as written.
+
+VALIDATION:
+- Ensure extracted numbers match exactly what is printed in the report.
+- Ensure signs are correct (except CapEx must be returned as positive).
+- Do NOT include commas or currency symbols.
+- Return ONLY numeric values.
+
+If any required item cannot be located explicitly, return null for that field.
+
+OUTPUT FORMAT (STRICT JSON ONLY):
+
+{
+  "unit": "",
+  "cfo_value": 0,
+  "capex_value": 0,
+  "debt_ratio": 0,
+  "equity_ratio": 0,
+  "net_debt": 0,
+  "shares_outstanding": 0,
+  "currency": ""
+}
+
     `;
 
   try {
