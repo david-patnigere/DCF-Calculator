@@ -6,50 +6,68 @@ const FinancialDataSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
+    metaData: {
+      unitMultiplier: {
+        type: String,
+        required: true,
+      },
 
-    cashFromOperatingActivities: {
-      type: Number,
-      required: true,
+      currency: {
+        type: String,
+        default: "USD",
+      },
+
+      source: {
+        type: String,
+        default: "SEC-10K",
+      },
     },
 
-    capitalExpenditures: {
-      type: Number,
-      required: true,
-    },
+    financeData: {
+      totalAssets: {
+        type: Number,
+        required: true,
+      },
 
-    unit: {
-      type: String,
-      required: true,
-    },
+      totalLiabilities: {
+        type: Number,
+        required: true,
+      },
 
-    currency: {
-      type: String,
-      default: "USD",
-    },
+      totalEquity: {
+        type: Number,
+        required: true,
+      },
 
-    debtRatio: {
-      type: Number,
-      default: 0,
-    },
+      cashAndEquivalents: {
+        type: Number,
+        required: true,
+      },
 
-    equityRatio: {
-      type: Number,
-      default: 0,
-    },
+      shortTermDebt: {
+        type: Number,
+        required: true,
+      },
 
-    netDebt: {
-      type: Number,
-      default: 0,
-    },
+      longTermDebt: {
+        type: Number,
+        required: true,
+      },
 
-    sharesOutstanding: {
-      type: Number,
-      default: 0,
-    },
+      cashFromOperatingActivities: {
+        type: Number,
+        required: true,
+      },
 
-    source: {
-      type: String,
-      default: "SEC-10K",
+      capitalExpenditures: {
+        type: Number,
+        required: true,
+      },
+
+      sharesOutstanding: {
+        type: Number,
+        default: 0,
+      },
     },
   },
   { _id: false } // important: prevents auto _id for array items

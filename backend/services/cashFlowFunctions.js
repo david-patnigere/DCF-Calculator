@@ -23,14 +23,23 @@ export async function saveFinancialData(data) {
             $push: {
               financialData: {
                 reportYear: data.reportYear,
-                cashFromOperatingActivities: data.cashFromOperatingActivities,
-                capitalExpenditures: data.capitalExpenditures,
-                unit: data.unit,
-                currency: data.currency,
-                debtRatio: data.debtRatio,
-                equityRatio: data.equityRatio,
-                netDebt: data.netDebt,
-                sharesOutstanding: data.sharesOutstanding,
+                metaData: {
+                  unitMultiplier: data.metaData.unitMultiplier,
+                  currency: data.metaData.currency,
+                  source: data.metaData.source,
+                },
+                financeData: {
+                  cashFromOperatingActivities:
+                    data.financeData.cashFromOperatingActivities,
+                  capitalExpenditures: data.financeData.capitalExpenditures,
+                  totalAssets: data.financeData.totalAssets,
+                  totalLiabilities: data.financeData.totalLiabilities,
+                  totalEquity: data.financeData.totalEquity,
+                  cashAndEquivalents: data.financeData.cashAndEquivalents,
+                  shortTermDebt: data.financeData.shortTermDebt,
+                  longTermDebt: data.financeData.longTermDebt,
+                  sharesOutstanding: data.financeData.sharesOutstanding,
+                },
               },
               $sort: { "financialData.reportYear": -1 },
             },
@@ -46,14 +55,23 @@ export async function saveFinancialData(data) {
         financialData: [
           {
             reportYear: data.reportYear,
-            cashFromOperatingActivities: data.cashFromOperatingActivities,
-            capitalExpenditures: data.capitalExpenditures,
-            unit: data.unit,
-            currency: data.currency,
-            debtRatio: data.debtRatio,
-            equityRatio: data.equityRatio,
-            netDebt: data.netDebt,
-            sharesOutstanding: data.sharesOutstanding,
+            metaData: {
+              unitMultiplier: data.metaData.unitMultiplier,
+              currency: data.metaData.currency,
+              source: data.metaData.source,
+            },
+            financeData: {
+              cashFromOperatingActivities:
+                data.financeData.cashFromOperatingActivities,
+              capitalExpenditures: data.financeData.capitalExpenditures,
+              totalAssets: data.financeData.totalAssets,
+              totalLiabilities: data.financeData.totalLiabilities,
+              totalEquity: data.financeData.totalEquity,
+              cashAndEquivalents: data.financeData.cashAndEquivalents,
+              shortTermDebt: data.financeData.shortTermDebt,
+              longTermDebt: data.financeData.longTermDebt,
+              sharesOutstanding: data.financeData.sharesOutstanding,
+            },
           },
         ],
       });
@@ -77,19 +95,25 @@ export async function fetchCashFlows(companyName, cik, latestYear) {
         entry.reportYear <= latestYear && entry.reportYear > latestYear - 5
     );
     const updatedFinancialData = financialData.map((entry) => {
-      units = units || entry.unit; // set units if not already set
+      units = units || entry.metaData.unitMultiplier; // set units if not already set
       return {
         reportYear: entry.reportYear,
-        cashFromOperatingActivities: entry.cashFromOperatingActivities,
-        capitalExpenditures: entry.capitalExpenditures,
+        cashFromOperatingActivities:
+          entry.financeData.cashFromOperatingActivities,
+        capitalExpenditures: entry.financeData.capitalExpenditures,
         freeCashFlow:
-          entry.cashFromOperatingActivities - entry.capitalExpenditures,
-        unit: entry.unit,
-        currency: entry.currency,
-        debtRatio: entry.debtRatio,
-        equityRatio: entry.equityRatio,
-        netDebt: entry.netDebt,
-        sharesOutstanding: entry.sharesOutstanding,
+          entry.financeData.cashFromOperatingActivities -
+          entry.financeData.capitalExpenditures,
+        unit: entry.metaData.unitMultiplier,
+        currency: entry.metaData.currency,
+        debtRatio:
+          entry.financeData.totalLiabilities / entry.financeData.totalAssets,
+        equityRatio:
+          entry.financeData.totalEquity / entry.financeData.totalAssets,
+        netDebt:
+          entry.financeData.totalLiabilities -
+          entry.financeData.cashAndEquivalents,
+        sharesOutstanding: entry.financeData.sharesOutstanding,
       };
     });
     console.log("Fetched Cash Flows: ", updatedFinancialData);

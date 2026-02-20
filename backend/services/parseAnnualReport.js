@@ -15,86 +15,59 @@ async function parseAnnualReport(url) {
 
   // The detailed prompt for structured data extraction
   const prompt = `
-        You are a financial statement extraction engine.
+        Act as a strict Financial Data Extractor. Your only job is to extract raw numerical values from the 10-K report at the following URL: ${url}.
 
-STRICT INSTRUCTIONS:
-- Use ONLY the data explicitly stated in the 10-K document available at the provided URL.
-- DO NOT estimate, approximate, interpolate, or infer missing values.
-- DO NOT calculate ratios unless all components are explicitly found in the document.
-- If a required value is not explicitly available, return null.
-- Use the MOST RECENT fiscal year column only.
-- Use CONSOLIDATED financial statements only (not parent-only statements).
-- Use the primary Statement of Cash Flows, Balance Sheet, and Notes if required.
+Do NOT perform any calculations. Do NOT attempt to derive ratios. 
+Extract the values exactly as they appear in the columns for the MOST RECENT COMPLETED FISCAL YEAR.
 
-TASK:
+### STEP 1: DETECT SCALE & CURRENCY
+Look at the top of the financial tables (Balance Sheet, Income Statement, Cash Flow). 
+- Identify the Reporting Unit (e.g., "in millions", "in thousands", "in whole dollars").
+- Identify the Currency (e.g., USD, EUR).
 
-From the 10-K report at the following URL: ${url},
+### STEP 2: EXTRACT RAW LINE ITEMS
+Locate the specific tables and extract the following raw numbers. If a specific exact term is not found, look for the synonyms provided in brackets.
 
-Extract the following values for the MOST RECENT fiscal year:
+FROM THE CONSOLIDATED BALANCE SHEETS:
+1. "Total Assets"
+2. "Total Liabilities"
+3. "Total Stockholders' Equity" [Synonyms: Total Shareholders' Equity, Total Equity, Total Deficit]
+4. "Cash and Cash Equivalents"
+5. "Short-term Debt" [Synonyms: Short-term borrowings, Current portion of long-term debt, Notes payable]
+   *If multiple lines exist (e.g., "Current portion of LT debt" AND "Short-term borrowings"), SUM them mentally or extract the largest one representing total short-term interest-bearing debt. If none, return 0.*
+6. "Long-term Debt" [Synonyms: Long-term borrowings, Notes payable less current portion]
 
-1) Cash Flow from Operating Activities (CFO)
-   - Exact line item typically labeled:
-     "Net cash provided by operating activities"
-   - Must come from the Statement of Cash Flows.
+FROM THE CONSOLIDATED STATEMENTS OF CASH FLOWS:
+7. "Net Cash Provided by Operating Activities" [Synonyms: Net cash from operations, Cash flow from operating activities]
+8. "Capital Expenditures" [Synonyms: Additions to property, plant and equipment, Purchases of property, plant and equipment] 
+   *Note: This is usually a negative number in the table. Extract it as the absolute POSITIVE value.*
 
-2) Capital Expenditures (CapEx)
-   - Exact line item typically labeled:
-     "Purchases of property, plant and equipment"
-     OR
-     "Capital expenditures"
-   - Must come from the Statement of Cash Flows under Investing Activities.
-   - Return CapEx as a POSITIVE number (absolute value).
+FROM THE CONSOLIDATED STATEMENTS OF OPERATIONS (INCOME STATEMENT):
+9. "Weighted Average Shares Outstanding - Diluted" [Synonyms: Diluted weighted average common shares]
 
-3) Debt Ratio
-   - If explicitly provided in the report, extract it.
-   - If not explicitly provided, calculate as:
-     Total Liabilities / Total Assets
-   - Use values from the Consolidated Balance Sheet.
-
-4) Equity Ratio
-   - If explicitly provided in the report, extract it.
-   - If not explicitly provided, calculate as:
-     Total Shareholders’ Equity / Total Assets
-
-5) Net Debt
-   - Calculate as:
-     Total Debt (Short-term Debt + Long-term Debt)
-     MINUS
-     Cash and Cash Equivalents
-   - All components must be explicitly found in the Balance Sheet or Notes.
-
-6) Shares Outstanding
-   - Extract from:
-     "Weighted-average shares outstanding (basic)"
-     OR
-     "Common shares outstanding"
-   - Use the most recent fiscal year.
-
-UNITS & CURRENCY:
-- Identify the unit stated in the financial statements header (e.g., "in millions", "in thousands").
-- DO NOT convert the values.
-- Preserve the reported unit exactly as written.
-- Identify the reporting currency exactly as written.
-
-VALIDATION:
-- Ensure extracted numbers match exactly what is printed in the report.
-- Ensure signs are correct (except CapEx must be returned as positive).
-- Do NOT include commas or currency symbols.
-- Return ONLY numeric values.
-
-If any required item cannot be located explicitly, return null for that field.
-
-OUTPUT FORMAT (STRICT JSON ONLY):
+### STEP 3: OUTPUT FORMAT
+Provide the output STRICTLY in the following JSON format. 
+- 'unit_multiplier': Return 1000000 for "millions", 1000 for "thousands", 1 for "whole".
+- 'currency': ISO code (e.g., "USD").
+- All value fields must be NUMBERS (no commas, no strings).
 
 {
-  "unit": "",
-  "cfo_value": 0,
-  "capex_value": 0,
-  "debt_ratio": 0,
-  "equity_ratio": 0,
-  "net_debt": 0,
-  "shares_outstanding": 0,
-  "currency": ""
+  "metaData": {
+    "unitMultiplier": [Number, e.g., 1000000],
+    "currency": "[String]",
+    "source": "${url}"
+  },
+  "financeData": {
+    "totalAssets": [Number],
+    "totalLiabilities": [Number],
+    "totalEquity": [Number],
+    "cashAndEquivalents": [Number],
+    "shortTermDebt": [Number],
+    "longTermDebt": [Number],
+    "cashFromOperatingActivities": [Number],
+    "capitalExpenditures": [Number],
+    "sharesOutstanding": [Number]
+  }
 }
 
     `;
@@ -118,22 +91,17 @@ OUTPUT FORMAT (STRICT JSON ONLY):
     const data = JSON.parse(extractedJson);
     console.log("Extracted Data: ", data);
 
-    if (isNaN(data.cfo_value) || isNaN(data.capex_value)) {
+    if (
+      isNaN(data.financeData.cashFromOperatingActivities) ||
+      isNaN(data.financeData.capitalExpenditures)
+    ) {
       throw new Error("Extracted values are not valid numbers.");
     }
 
-    return {
-      cashFromOperatingActivities: data.cfo_value,
-      capitalExpenditures: data.capex_value,
-      unit: data.unit,
-      currency: data.currency,
-      debtRatio: data.debt_ratio,
-      equityRatio: data.equity_ratio,
-      netDebt: data.net_debt,
-      sharesOutstanding: data.shares_outstanding,
-    };
+    return data;
   } catch (error) {
     console.error("Error calculating FCF: ", error.message);
+    return new Error("Failed to parse annual report: " + error.message);
   }
 }
 

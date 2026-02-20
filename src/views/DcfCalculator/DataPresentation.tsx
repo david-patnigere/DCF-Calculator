@@ -29,6 +29,10 @@ const DataPresentation = ({
     cashFlowData.reduce((sum, item) => sum + item.presentValue, 0) +
     pvTerminalValue;
 
+  const intrinsicValue =
+    (sumOfPVs - financialDataResults[0]?.netDebt) /
+    financialDataResults[0]?.sharesOutstanding;
+
   return (
     <div className="data-presentation">
       <TableContainer component={Paper}>
@@ -123,9 +127,21 @@ const DataPresentation = ({
                 <TableCell align="center">Share Price</TableCell>
                 <TableCell align="center">
                   {financialDataResults[0]?.sharesOutstanding
+                    ? formatCurrency(intrinsicValue, cashFlowData[0]?.currency)
+                    : "N/A"}
+                </TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell align="center">Value Band</TableCell>
+                <TableCell align="center">
+                  {financialDataResults[0]?.sharesOutstanding
                     ? formatCurrency(
-                        (sumOfPVs - financialDataResults[0]?.netDebt) /
-                          financialDataResults[0]?.sharesOutstanding,
+                        intrinsicValue * 0.85,
+                        cashFlowData[0]?.currency
+                      ) +
+                      " to " +
+                      formatCurrency(
+                        intrinsicValue * 1.15,
                         cashFlowData[0]?.currency
                       )
                     : "N/A"}

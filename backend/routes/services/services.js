@@ -37,18 +37,10 @@ router.post("/fetch-cash-flows", async (req, res) => {
             financialDataResult
           );
           await saveFinancialData({
-            companyName: companyName,
-            cik: cik,
+            companyName,
+            cik,
+            ...financialDataResult,
             reportYear: year,
-            cashFromOperatingActivities:
-              financialDataResult.cashFromOperatingActivities,
-            capitalExpenditures: financialDataResult.capitalExpenditures,
-            unit: financialDataResult.unit,
-            currency: financialDataResult.currency,
-            debtRatio: financialDataResult.debtRatio,
-            equityRatio: financialDataResult.equityRatio,
-            netDebt: financialDataResult.netDebt,
-            sharesOutstanding: financialDataResult.sharesOutstanding,
           }).catch((error) => {
             console.error(
               "Error saving financial data for year ",

@@ -69,6 +69,7 @@ const FcfCalculatorView = () => {
     // Send the verified company data to the backend for the whole DCF calculation
     try {
       setLoading(true);
+      setFutureFCF(null);
       const response = await fetch(
         "http://localhost:8000/api/services/fetch-cash-flows",
         {
