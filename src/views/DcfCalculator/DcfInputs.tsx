@@ -1,4 +1,4 @@
-import { Input } from "@mui/material";
+import { Card, CardContent, Input, Stack, TextField } from "@mui/material";
 import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
 import { styled } from "@mui/material/styles";
@@ -15,8 +15,14 @@ const StyledButton = styled(Button)({
 });
 
 const DcfInputs = ({ formState, formUpdateHandlers }) => {
-  const { avgFcf, growthRate, discountRate, terminalGrowthRate, currency } =
-    formState;
+  const {
+    avgFcf,
+    growthRate,
+    discountRate,
+    terminalGrowthRate,
+    isValidCompany,
+    handleGenerateFutureCashFlows,
+  } = formState;
   const {
     setGrowthRate,
     setDiscountRate,
@@ -24,36 +30,51 @@ const DcfInputs = ({ formState, formUpdateHandlers }) => {
     formatCurrency,
   } = formUpdateHandlers;
   return (
-    <div className="dcf-inputs-section">
-      <StyledChip label={`Average FCF: ${formatCurrency(avgFcf, currency)}`} />
-      <div>
-        <span>Growth Rate: </span>
-        <Input
-          type="number"
-          value={growthRate}
-          onChange={(e) => setGrowthRate(Number(e.target.value))}
-          placeholder="Growth Rate"
-        />
-      </div>
-      <div>
-        <span>Discount Rate: </span>
-        <Input
-          type="number"
-          value={discountRate}
-          onChange={(e) => setDiscountRate(Number(e.target.value))}
-          placeholder="Discount Rate"
-        />
-      </div>
-      <div>
-        <span>Terminal Growth Rate: </span>
-        <Input
-          type="number"
-          value={terminalGrowthRate}
-          onChange={(e) => setTerminalGrowthRate(Number(e.target.value))}
-          placeholder="Terminal Growth Rate"
-        />
-      </div>
-    </div>
+    <Card className="dcf-inputs-card" style={{ margin: "8px" }}>
+      <CardContent>
+        <Stack spacing={2}>
+          <Stack
+            direction="row"
+            spacing={2}
+            alignContent="center"
+            alignItems="center"
+          >
+            <span>Growth Rate: </span>
+            <TextField
+              type="number"
+              value={growthRate}
+              onChange={(e) => setGrowthRate(Number(e.target.value))}
+              placeholder="Growth Rate"
+            />
+          </Stack>
+          <Stack direction="row" spacing={2} alignItems="center">
+            <span>Discount Rate: </span>
+            <TextField
+              type="number"
+              value={discountRate}
+              onChange={(e) => setDiscountRate(Number(e.target.value))}
+              placeholder="Discount Rate"
+            />
+          </Stack>
+          <Stack direction="row" spacing={2} alignItems="center">
+            <span>Terminal Growth Rate: </span>
+            <TextField
+              type="number"
+              value={terminalGrowthRate}
+              onChange={(e) => setTerminalGrowthRate(Number(e.target.value))}
+              placeholder="Terminal Growth Rate"
+            />
+          </Stack>
+          <StyledButton
+            variant="contained"
+            onClick={handleGenerateFutureCashFlows}
+            disabled={!isValidCompany}
+          >
+            Generate Future Cash Flows
+          </StyledButton>
+        </Stack>
+      </CardContent>
+    </Card>
   );
 };
 

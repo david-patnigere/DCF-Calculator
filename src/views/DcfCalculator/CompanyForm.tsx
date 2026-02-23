@@ -1,8 +1,13 @@
-import Button from "@mui/material/Button";
-import Chip from "@mui/material/Chip";
+import {
+  Card,
+  CardContent,
+  TextField,
+  Button,
+  Stack,
+  Chip,
+} from "@mui/material";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import { styled } from "@mui/material/styles";
-import TextField from "@mui/material/TextField";
-import React from "react";
 
 const StyledChip = styled(Chip)({
   padding: "1rem",
@@ -14,30 +19,56 @@ const CompanyForm = ({
   updateCompanyTicker,
   handleVerify,
   companyData,
+  isValidCompany,
+  fetchCashFlows,
 }) => {
   return (
-    <div className="company-input">
-      <TextField
-        id="company-name-input"
-        placeholder="Enter Company Name"
-        label="Company Name"
-        variant="outlined"
-        value={companyName}
-        onChange={updateCompanyTicker}
-        style={{ padding: "0.5rem" }}
-        className="company-text-input"
-      />
-      <Button variant="contained" onClick={handleVerify}>
-        Verify Company Name
-      </Button>
-      {companyData && (
-        <StyledChip
-          label={companyData.name}
-          color="primary"
-          variant="outlined"
-        />
-      )}
-    </div>
+    <Card className="company-input">
+      <CardContent>
+        <Stack direction="column" spacing={2} alignItems="center">
+          <Stack direction="row" spacing={2} alignItems="center">
+            <TextField
+              id="company-name-input"
+              placeholder="Enter Company Name"
+              label="Company Name"
+              variant="outlined"
+              value={companyName}
+              onChange={updateCompanyTicker}
+              style={{ padding: "0.5rem" }}
+              className="company-text-input"
+            />
+            <Button variant="outlined" onClick={handleVerify}>
+              Verify Company Name
+            </Button>
+          </Stack>
+          <Stack direction="row" spacing={2} alignItems="center">
+            {companyData && (
+              <>
+                <StyledChip
+                  label={companyData.name}
+                  color="primary"
+                  variant="outlined"
+                />
+                <span>
+                  Verified{" "}
+                  <CheckCircleIcon sx={{ color: "green", fontSize: 16 }} />
+                </span>
+              </>
+            )}
+          </Stack>
+          {companyData && (
+            <Button
+              variant="contained"
+              color="info"
+              onClick={fetchCashFlows}
+              disabled={!isValidCompany}
+            >
+              Fetch Cash Flows (5 yr)
+            </Button>
+          )}
+        </Stack>
+      </CardContent>
+    </Card>
   );
 };
 

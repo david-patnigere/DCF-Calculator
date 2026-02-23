@@ -1,7 +1,6 @@
 import "./App.css";
 import HeaderNavigationContainer from "./components/HeaderNavigationContainer";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import OverviewContainer from "./components/Overview/OverviewContainer";
 import DcfCalculatorContainer from "./components/DcfCalculator/DcfCalculatorContainer";
 
 export default function App() {
@@ -12,7 +11,6 @@ export default function App() {
         <div className="App-body">
           {/* <p>This is the body tag</p> */}
           <Routes>
-            <Route path="/" element={<OverviewContainer />} />
             <Route
               path="/dcf-calculator"
               element={<DcfCalculatorContainer />}
