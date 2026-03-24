@@ -1,9 +1,9 @@
 import express from "express";
 import cors from "cors";
 import mongoose from "mongoose";
-import tickerRouter from "./routes/ticker.js";
+import tickerRouter from "./routes/india/ticker.js";
 import secRouter from "./routes/usa/sec.js";
-import servicesRouter from "./routes/services/services.js";
+import servicesRouter from "./routes/usa/services.js";
 
 const app = express();
 
@@ -22,7 +22,7 @@ mongoose
 app.use(cors());
 app.use(express.json());
 
-app.use("/api", tickerRouter);
+app.use("/api/india", tickerRouter);
 
 app.use("/api/usa", secRouter);
 

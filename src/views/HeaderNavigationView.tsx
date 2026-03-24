@@ -6,8 +6,11 @@ const HeaderNavigationView = () => {
     <div className="app-header">
       <span className="app-title">DCF Calculator</span>
       <nav className="nav-links">
-        <Link to="/Dcf-calculator" className="no-style">
-          DCF Calculator
+        <Link to="/usa" className="no-style">
+          US Stocks
+        </Link>
+        <Link to="/india" className="no-style">
+          Indian Stocks
         </Link>
       </nav>
     </div>
