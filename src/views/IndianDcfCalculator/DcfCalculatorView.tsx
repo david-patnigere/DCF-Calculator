@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Button from "@mui/material/Button";
 import "./DcfCalculatorView.css";
 import { CircularProgress, styled } from "@mui/material";
@@ -25,6 +25,7 @@ const FcfCalculatorView = () => {
   const [companyName, setCompanyName] = useState("");
   const [isValidCompany, setIsValidCompany] = useState<boolean>(false);
   const [companyData, setCompanyData] = useState<CompanyDataType | null>(null);
+  const [companyList, setCompanyList] = useState<string[]>([]); // State to hold the list of companies
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [financialDataResults, setFinancialDataResults] = useState<any>(null);
   const [amountUnits, setAmountUnits] = useState<string>("");
@@ -41,10 +42,21 @@ const FcfCalculatorView = () => {
       0,
     ) / financialDataResults?.length || 0;
 
-  const updateCompanyTicker = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setCompanyName(event.target.value);
+  const updateCompanyTicker = (value: string) => {
+    setCompanyName(value);
   };
   const currentYear = new Date().getFullYear() - 1;
+
+  const fetchCompanyList = async () => {
+    try {
+      const response = await fetch("http://localhost:7100/api/v1/in/companies");
+      const body = await response.json();
+      console.log("Received List of Companies. Count is: ", body.data.length);
+      setCompanyList(body.data);
+    } catch (error) {
+      console.error("Error fetching company list: ", error);
+    }
+  };
 
   const handleVerify = async () => {
     setLoading(true);
@@ -55,6 +67,7 @@ const FcfCalculatorView = () => {
           encodeURIComponent(companyName),
       );
       const body = await response.json();
+      console.log("Verify Company Response: ", body);
       setCompanyData(body.data);
       setIsValidCompany(true);
       setErrorMessage(null);
@@ -66,13 +79,13 @@ const FcfCalculatorView = () => {
   };
 
   //this function will call the backend to fetch the historical cash flow data
-  const fetchCashFlows = async () => {
+  const fetchFinancialData = async () => {
     // Send the verified company data to the backend for the whole DCF calculation
     try {
       setLoading(true);
       setFutureFCF(null);
       const response = await fetch(
-        "http://localhost:8000/api/services/fetch-cash-flows",
+        "http://localhost:8000/api/india/services/fetch-financial-data",
         {
           method: "POST",
           headers: {
@@ -181,6 +194,10 @@ const FcfCalculatorView = () => {
     formatCurrency,
   };
 
+  useEffect(() => {
+    fetchCompanyList();
+  }, []);
+
   return (
     <div className="fcf-calculator-view">
       <CompanyForm
@@ -188,8 +205,9 @@ const FcfCalculatorView = () => {
         updateCompanyTicker={updateCompanyTicker}
         handleVerify={handleVerify}
         companyData={companyData}
+        companyList={companyList} // Pass the companyList state to CompanyForm
         isValidCompany={isValidCompany}
-        fetchCashFlows={fetchCashFlows}
+        fetchFinancialData={fetchFinancialData}
       />
 
       {loading && <CircularProgress />}
