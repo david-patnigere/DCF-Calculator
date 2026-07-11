@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 import mongoose from "mongoose";
-import tickerRouter from "./routes/india/ticker.js";
+import indiaRouter from "./routes/india/services.js";
 import secRouter from "./routes/usa/sec.js";
 import servicesRouter from "./routes/usa/services.js";
 
@@ -22,7 +22,7 @@ mongoose
 app.use(cors());
 app.use(express.json());
 
-app.use("/api/india", tickerRouter);
+app.use("/api/india", indiaRouter);
 
 app.use("/api/usa", secRouter);
 
